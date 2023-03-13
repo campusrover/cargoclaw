@@ -3,8 +3,8 @@
 ### Members
 
 Benjamin Blinder, [benjaminblinder@brandeis.edu](mailto:benjaminblinder@brandeis.edu)
-
 Ken Kirio, [kenkirio@brandeis.edu](mailto:kenkirio@brandeis.edu)
+Vibhu Singh, [vibhusingh@brandeis.edu](mailto:kenkirio@brandeis.edu)
 
 ## Summary
 
