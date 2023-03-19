@@ -1,0 +1,10 @@
+<launch>
+    <node pkg='arm_control' type='control_arm.py' name='control_arm' output='screen' />
+    <!-- <node pkg='arm_control' type='send_command.py' name='send_command' output='screen' /> -->
+    <include file="$(find interbotix_xsarm_control)/launch/xsarm_control.launch">
+        <arg name="robot_model" value="px100" />
+        <!-- <arg name="use_actual" value="true" /> -->
+        <arg name="use_sim" value="true" /> 
+        <!-- <arg name="dof" value="4" />  -->
+    </include>
+</launch>
