@@ -180,8 +180,8 @@ def vel_cb(msg):#takes predicted velocity from the cmd_vel
 def scan_cb(msg):
     pass
     # print(min(msg.ranges))
-    if min(msg.ranges)<0.1:
-        rob.state='h'
+    # if min(msg.ranges)<0.1:
+    #     rob.state='h'
 
 #Key press callback
 def key_cb(msg):
