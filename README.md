@@ -1,7 +1,5 @@
 # Cargo Claw
 
-Testing
-
 ### Members
 
 Benjamin Blinder, [benjaminblinder@brandeis.edu](mailto:benjaminblinder@brandeis.edu)
