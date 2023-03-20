@@ -1,6 +1,6 @@
 # Cargo Claw
 
-Testing git
+Testing
 
 ### Members
 
