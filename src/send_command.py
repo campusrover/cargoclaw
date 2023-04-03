@@ -7,6 +7,7 @@ Run the program, read the README or code, to find more details about the command
 import rospy
 from geometry_msgs.msg import Point
 from std_msgs.msg import Bool, String, Float32
+import time
 
 class SendCommand():
 
@@ -65,9 +66,6 @@ class SendCommand():
             # ask for user input
             user_input = input("Please enter a new command: ")
             user_input = user_input.strip()
-
-            
-
             # exit 
             if user_input == self.exit:
                 rospy.loginfo("Returning the arm to the sleep position and exiting the program now.")
@@ -105,14 +103,27 @@ class SendCommand():
                 user_input = user_input.split(" ")
                 if self.is_dig(user_input[1]):
                     self.time_publisher.publish(float(user_input[1]))
-            else: 
-                rospy.loginfo("Simulates what it would be like to move, grab an object, move it to a location, drop it off, and move the claw into a rest position")
-                self.gripper_publisher.publish(self.open)
-                self.point_publisher.publish(Point(-.04, 1, .04))
-                self.gripper_publisher.publish(self.close)
-                self.point_publisher.publish(Point(-.04, 1, -.04))
-                self.gripper_publisher.publish(self.open)
+            elif user_input[0] == "z":
                 self.home_publisher.publish(True)
+                time.sleep(1.5)
+                self.gripper_publisher.publish(self.open)
+                time.sleep(1.5)
+                self.point_publisher.publish(Point(0, 1, -0.14))
+                time.sleep(1.5)
+                self.gripper_publisher.publish(self.close)
+                time.sleep(1.5)
+                self.home_publisher.publish(True)
+                time.sleep(1.5)
+                self.point_publisher.publish(Point(+0, -1, -0.12))
+                time.sleep(1.5)
+                self.gripper_publisher.publish(self.open)
+                time.sleep(1.5)
+                self.point_publisher.publish(Point(0, -1, 0.12))
+                time.sleep(1.5)
+                self.sleep_publisher.publish(True)
+
+            else: 
+                rospy.loginfo("Improper command, please try again.")
             
             count += 1
 
