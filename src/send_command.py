@@ -65,6 +65,9 @@ class SendCommand():
             # ask for user input
             user_input = input("Please enter a new command: ")
             user_input = user_input.strip()
+
+            
+
             # exit 
             if user_input == self.exit:
                 rospy.loginfo("Returning the arm to the sleep position and exiting the program now.")
@@ -103,7 +106,13 @@ class SendCommand():
                 if self.is_dig(user_input[1]):
                     self.time_publisher.publish(float(user_input[1]))
             else: 
-                rospy.loginfo("Improper command, please try again.")
+                rospy.loginfo("Simulates what it would be like to move, grab an object, move it to a location, drop it off, and move the claw into a rest position")
+                self.gripper_publisher.publish(self.open)
+                self.point_publisher.publish(Point(-.04, 1, .04))
+                self.gripper_publisher.publish(self.close)
+                self.point_publisher.publish(Point(-.04, 1, -.04))
+                self.gripper_publisher.publish(self.open)
+                self.home_publisher.publish(True)
             
             count += 1
 

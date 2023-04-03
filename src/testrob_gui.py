@@ -157,16 +157,16 @@ hold=tkinter.Button(
 
 Zig=tkinter.Button(
     frame3,
-    text="Zig Zag",
+    text="Go to Delivery",
     bg="grey",
-    command=pubZ
+    # command=pubZ
 )
 
 spring=tkinter.Button(
     frame1,
-    text="Spring",
+    text="Return from Delivery",
     bg="grey",
-    command=pubS
+    # command=pubS
 )
 
 dance=tkinter.Button(
