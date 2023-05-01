@@ -1,0 +1,4 @@
+<launch>
+	<include arm_command.launch />
+	<include transport_command.launch />
+</launch>
