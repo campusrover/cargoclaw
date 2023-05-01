@@ -84,7 +84,7 @@ class ImageProcessor:
 				print(f"x: {x} y: {y}")
 
 				# Publish the position of the cargo box
-#	            self.cargo_point.publish(Point(x, y, self.arm_z))
+				# self.cargo_point.publish(Point(x, y, self.arm_z))
 
 			cv2.imshow("image", image)
 			cv2.imshow("masked", masked)

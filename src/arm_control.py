@@ -37,10 +37,11 @@ class SendCommand():
         self.gripper_publisher = rospy.Publisher("/arm_control/gripper", String, queue_size=1)
         self.exit_publisher = rospy.Publisher("/arm_control/exit", Bool, queue_size=1)
         self.time_publisher = rospy.Publisher("/arm/time", Float32, queue_size=1)
+        self.arm_status_publisher = rospy.Publisher("/arm_status", String, queue_size=1)
         
         self.publisher()
 
-        self.point_sub = rospy.Subscriber("/cargo_point", Point, queue_size=1)
+        self.point_sub = rospy.Subscriber("/cargo_point", Point, cargo_point_cb)
 
 
     
@@ -61,6 +62,7 @@ class SendCommand():
 
     def publisher(self):
         while True: 
+            if is_valid_coordinate(self,self.point_sub.msg)
             # move by point amount
             elif user_input[0] == "p":
                 user_input = user_input.split(" ")
@@ -102,7 +104,11 @@ class SendCommand():
             return True
         except ValueError:
             return  False
-    
+
+    def is_valid_coordinate(self, msg):
+        if (self.y > 3.1 or self.y < -3.1):
+            self.validity_publisher.publish(False)
+            rospy.loginfo("The box's coordinates are invalid, need to reposition robot")
 
 if __name__=='__main__':
     rospy.init_node("send_message")
