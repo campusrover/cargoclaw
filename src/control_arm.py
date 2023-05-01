@@ -26,6 +26,7 @@ class ArmControl():
         self.gripper_sub = rospy.Subscriber("/arm_control/gripper", String, self.gripper_cb)
         self.exit_sub = rospy.Subscriber("/arm_control/exit", Bool, self.exit_cb)
         self.time_sub = rospy.Subscriber("/arm/time", Float32, self.time_cb)
+        self.cargo_point = rospy.Subscrober("cargo_point", Point, self.cargo_point_cb)
 
         # initialize the coordinates and booleans
         self.x = 0
@@ -50,6 +51,9 @@ class ArmControl():
         self.bot.arm.set_ee_pose_components(x=self.pose_x, y=self.pose_y, z=self.pose_z)
 
         self.main()
+
+    def cargo_point_cb(self, msg):
+        
 
     # point message callback - set the x,y,z coordinates 
     def point_cb(self, msg):
