@@ -41,74 +41,52 @@ class SendCommand():
         
         self.publisher()
 
-        self.point_sub = rospy.Subscriber("/cargo_point", Point, cargo_point_cb)
-
-
-    
-
-    # def print_commands(self):
-    #     print(">-----------------COMMANDS----------------------<")
-    #     print("Enter a point (x,y,z): p 0 0 0")
-    #     print("Enter ee pose matrix (x,y,z): m 0 0 0")
-    #     print("Set trajectory time: t 1.0")
-    #     print("Go to home position: home")
-    #     print("Go to sleep position: sleep")
-    #     print("Open gripper: og")
-    #     print("Close gripper: cg")
-    #     print("Exit: exit")
-    #     print(">-----------------------------------------------<")
-
-        
+        # self.point_sub = rospy.Subscriber("/cargo_point", Point, cargo_point_cb)∏
 
     def publisher(self):
         while True: 
-            if is_valid_coordinate(self,self.point_sub.msg)
-            # move by point amount
-            elif user_input[0] == "p":
-                user_input = user_input.split(" ")
-                can_send = self.check_input(user_input)
-                if can_send:
+            if user_input[0] == "z":
+                if is_valid_coordinate(self.point_sub.msg) or True:
+                    self.arm_status_publisher.publish("grabcube")
+                    self.home_publisher.publish(True)
+                    time.sleep(1.5)
+                    self.gripper_publisher.publish(self.open)
+                    time.sleep(1.5)
                     self.point_publisher.publish(Point(self.x, self.y, self.z))
-            # set ee pose components
-            elif user_input[0] == "m":
-                user_input = user_input.split(" ")
-                can_send = self.check_input(user_input)
-                if can_send:
-                    self.pose_publisher.publish(Point(self.x, self.y, self.z))
-            elif user_input[0] == "t":
-                user_input = user_input.split(" ")
-                if self.is_dig(user_input[1]):
-                    self.time_publisher.publish(float(user_input[1]))
-            elif user_input[0] == "z":
-                self.home_publisher.publish(True)
-                time.sleep(1.5)
-                self.gripper_publisher.publish(self.open)
-                time.sleep(1.5)
-                self.point_publisher.publish(Point(0, 1, -0.14))
-                time.sleep(1.5)
-                self.gripper_publisher.publish(self.close)
-                time.sleep(1.5)
-                self.home_publisher.publish(True)
-                time.sleep(1.5)
-                self.point_publisher.publish(Point(+0, -1, -0.12))
-                time.sleep(1.5)
-                self.gripper_publisher.publish(self.open)
-                time.sleep(1.5)
-                self.point_publisher.publish(Point(0, -1, 0.12))
-                time.sleep(1.5)
-                self.sleep_publisher.publish(True)
+                    time.sleep(1.5)
+                    self.gripper_publisher.publish(self.close)
+                    time.sleep(1.5)
+                    self.home_publisher.publish(True)
+                    time.sleep(1.5)
+                    self.point_publisher.publish(Point(+0, -1, -0.12))
+                    time.sleep(1.5)
+                    self.gripper_publisher.publish(self.open)
+                    time.sleep(1.5)
+                    self.point_publisher.publish(Point(0, -1, 0.12))
+                    time.sleep(1.5)
+                    self.sleep_publisher.publish(True)
+                    self.arm_status_publisher.publish("resting")
     
-    def is_dig(self,n):
-        try:
-            float(n)
-            return True
-        except ValueError:
-            return  False
+    # def is_dig(self,n):
+    #     try:
+    #         float(n)
+    #         return True
+    #     except ValueError:
+    #         return  False
 
     def is_valid_coordinate(self, msg):
         if (self.y > 3.1 or self.y < -3.1):
-            self.validity_publisher.publish(False)
+            self.arm_status_publisher.publish("invalid")
             rospy.loginfo("The box's coordinates are invalid, need to reposition robot")
+            return False
+        self.arm_status_publisher.publish("valid")
+        return True
+
+    # def cargo_point_cb(self, msg):
+    #     self.x = msg.x
+    #     self.y = msg.y
+    #     self.z = msg.z
+
 
 if __name__=='__main__':
     rospy.init_node("send_message")
