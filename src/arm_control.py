@@ -41,8 +41,9 @@ class SendCommand():
         
         self.publisher()
 
-        # self.point_sub = rospy.Subscriber("/cargo_point", Point, cargo_point_cb)∏
+        self.point_sub = rospy.Subscriber("/cargo_point", Point, cargo_point_cb)∏
 
+    #base values when robot is perfect positin in front of arm p 0 .04 -.06
     def publisher(self):
         while True: 
                 if is_valid_coordinate(self.point_sub.msg) or True:
@@ -81,10 +82,10 @@ class SendCommand():
         self.arm_status_publisher.publish("valid")
         return True
 
-    # def cargo_point_cb(self, msg):
-    #     self.x = msg.x
-    #     self.y = msg.y
-    #     self.z = msg.z
+    def cargo_point_cb(self, msg):
+        self.x = msg.x
+        self.y = msg.y
+        self.z = msg.z
 
 
 if __name__=='__main__':
