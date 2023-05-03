@@ -40,6 +40,9 @@ class SendCommand():
         
         self.publisher()
 
+        # set up the subscriber to get the coordinates form the camera
+        self.point_sub = rospy.Subscriber("/cargo_point", Point, queue_size=1)
+
     def print_commands(self):
         print(">-----------------COMMANDS----------------------<")
         print("Enter a point (x,y,z): p 0 0 0")
