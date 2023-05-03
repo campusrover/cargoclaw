@@ -3,12 +3,9 @@ import tkinter #this is the GUI I chose
 from std_msgs.msg import String, Bool
 import rospy
 import rosnode
-<<<<<<< Updated upstream
-=======
 import subprocess
 import threading
 import time
->>>>>>> Stashed changes
 
 
 widgets=[]
@@ -80,8 +77,6 @@ def updateTime():
     """
     pass
 
-<<<<<<< Updated upstream
-=======
 def start_terminal_1(): #thread
     command1="roslaunch turtlebot3_gazebo turtlebot3_house.launch"
     subprocess.run(command1, shell=True,check=True)
@@ -89,7 +84,6 @@ def terminal2():
     command2="roslaunch turtlebot3_slam turtlebot3_slam.launch"
     subprocess.run(command2, shell=True, check=True)
 
->>>>>>> Stashed changes
 
 def pack_test():
     for i in widgets:
@@ -127,24 +121,6 @@ def pack_test():
 
 
 def pack1():
-<<<<<<< Updated upstream
-    for i in widgets:
-        i.pack_forget()
-    for i in screen1:
-        print(i)
-        i.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
-    forward.pack()
-    hold.pack()
-    left.pack()
-    right.pack()
-    back.pack()
-
-def pack2():
-    pass
-
-def pack3():
-    pass
-=======
     #Run Subcommand
     # t1=threading.Thread(target=start_terminal_1)
     # t1.start()
@@ -194,7 +170,6 @@ def pack3():
 
     perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
 
->>>>>>> Stashed changes
 
 
 #All functions that are called by pressing GUI buttons
@@ -206,10 +181,6 @@ def pubR():
     key_pub.publish("r")
 def pubF():
     key_pub.publish("f")
-<<<<<<< Updated upstream
-=======
-    print("Forward")
->>>>>>> Stashed changes
 def pubB():
     key_pub.publish("b")
 
@@ -330,33 +301,21 @@ GoGoal=tkinter.Button( #an empty button which would have a different command but
 #Permanent Buttons
 Mode1=tkinter.Button(
     perm_frame,
-<<<<<<< Updated upstream
-    text="Mode1",
-=======
     text="Maping",
->>>>>>> Stashed changes
     bg="yellow",
     command=pack1
 )
 
 Mode2=tkinter.Button(
     perm_frame,
-<<<<<<< Updated upstream
-    text="Mode2",
-=======
     text="Localizing",
->>>>>>> Stashed changes
     bg="yellow",
     command=pack2
 )
 
 Mode3=tkinter.Button(
     perm_frame,
-<<<<<<< Updated upstream
-    text="Mode3",
-=======
     text="Driving",
->>>>>>> Stashed changes
     bg="yellow",
     command=pack3
 )
