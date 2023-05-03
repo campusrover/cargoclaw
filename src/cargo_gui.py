@@ -376,21 +376,21 @@ GoGoal=tkinter.Button( #an empty button which would have a different command but
 #Permanent Buttons
 Mode1=tkinter.Button(
     perm_frame,
-    text="Maping",
+    text="Maping (1)",
     bg="yellow",
     command=pack1
 )
 
 Mode2=tkinter.Button(
     perm_frame,
-    text="Localizing",
+    text="Localizing (2)",
     bg="yellow",
     command=pack2
 )
 
 Mode3=tkinter.Button(
     perm_frame,
-    text="Driving",
+    text="Driving (3)",
     bg="yellow",
     command=pack3
 )
