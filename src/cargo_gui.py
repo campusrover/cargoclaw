@@ -238,14 +238,29 @@ def pack3():
 #All functions that are called by pressing GUI buttons
 def pubH():
     key_pub.publish("h")
+def pubH_key(event):
+    pubH()
+
+def pubL_key(event):
+    pubL()
 def pubL():
     key_pub.publish("l")
+
 def pubR():
     key_pub.publish("r")
+def pubR_key(event):
+    pubR()
+
+
 def pubF():
     key_pub.publish("f")
+def pubF_key(event):
+    pubF()
+
 def pubB():
     key_pub.publish("b")
+def pubB_key(event):
+    pubB()
 
 def pubSH():
     key_pub.publish("sh")
@@ -411,6 +426,14 @@ Mode2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 
 pack1()
+
+
+root.bind("w",pubF_key)
+root.bind("s",pubB_key)
+root.bind("a",pubL_key)
+root.bind("d",pubR_key)
+root.bind("<space>",pubH_key)
+
 
 
 root.mainloop() #tktiner mainloop
