@@ -45,7 +45,6 @@ class SendCommand():
 
     def publisher(self):
         while True: 
-            if user_input[0] == "z":
                 if is_valid_coordinate(self.point_sub.msg) or True:
                     self.arm_status_publisher.publish("grabcube")
                     self.home_publisher.publish(True)
