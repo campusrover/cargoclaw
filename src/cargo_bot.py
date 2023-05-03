@@ -17,12 +17,11 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 """Code for moving Cargo Bot"""
 
-
 class Robot:
     def __init__(self):
         self.OGSpeed=0.2 #original speed of robot
         self.speed=self.OGSpeed #used speed of robot
-        self.turnspeed=1 #rad/sec
+        self.turnspeed=0.7 #rad/sec
         self.x=0 #x position
         self.y=0 #y position
         self.yaw=0 #yaw  
@@ -163,7 +162,7 @@ class Robot:
 
 #Key press callback
 def key_cb(msg):
-    print(msg)
+    # print(msg)
     if rob.state==msg.data and (rob.state=="f" or rob.state=="b"): #keeps track of if its a double input or not
         rob.state="" + msg.data+""+msg.data
     elif rob.state=="Auto-Move":
@@ -229,7 +228,7 @@ cmd_vel_sub=rospy.Subscriber("cmd_vel", Twist, vel_cb)
 alien_pub=rospy.Publisher("alien_state",Bool, queue_size=1)
 
 client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-client.wait_for_server()
+# client.wait_for_server()
 
 # start in state halted and grab the current time
 rob.last_key_press_time = rospy.Time.now()

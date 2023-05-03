@@ -4,8 +4,9 @@ from std_msgs.msg import String, Bool
 import rospy
 import rosnode
 import subprocess
-import threading
 import time
+import os
+import signal
 
 
 widgets=[]
@@ -30,7 +31,13 @@ def state_cb(msg):
     key_pub.publish("gh")
 
 def arm_cb(msg):
-    pass #TODO add message catchers for strings Vibhu sent in slack
+    if (msg.data=="invalid"):
+        rob.GoHome()
+        time.sleep(3)
+        rob.GoGoal()
+    elif(msg.data=="resting"):
+        time.sleep(2)
+        rob.GoHome()
 
 #creates all the text variables for displaying the robot data
 mode_text=tkinter.StringVar()
@@ -77,13 +84,38 @@ def updateTime():
     """
     pass
 
-def start_terminal_1(): #thread
-    command1="roslaunch turtlebot3_gazebo turtlebot3_house.launch"
-    subprocess.run(command1, shell=True,check=True)
+pro=subprocess
+# def start_terminal_1(): #thread
+#     global pro
+#     command="roslaunch turtlebot3_gazebo turtlebot3_house.launch"
+#     subprocess.run(command, shell=True,check=True)
+def terminal1():
+    global pro
+    command="roslaunch turtlebot3_slam turtlebot3_slam.launch"
+    # subprocess.run(command, shell=True, check=True)
+    pro=subprocess.Popen(command, stdout=subprocess.PIPE,shell=True,preexec_fn=os.setsid)
 def terminal2():
-    command2="roslaunch turtlebot3_slam turtlebot3_slam.launch"
-    subprocess.run(command2, shell=True, check=True)
+    global pro
+    command="rosrun map_server map_saver -f ~/cargomap" 
+    subprocess.run(command, shell=True, check=True)
+    # pro=subprocess.Popen(command, stdout=subprocess.PIPE,shell=True,preexec_fn=os.setsid)
+def terminal3():
+    global pro
+    command="roslaunch turtlebot3_navigation turtlebot3_navigation.launch map_file:=$HOME/cargomap.yaml"
+    pro=subprocess.Popen(command, stdout=subprocess.PIPE,shell=True,preexec_fn=os.setsid)
 
+def deleteOldMap():#TODO add a line to delete the old map?
+    global pro
+    command="rm -r cargomap.*"
+    subprocess.run(command, shell=True)
+    print("deleted")
+
+def killOpenTerminal():
+    global pro
+    try:
+        os.killpg(os.getpgid(pro.pid),signal.SIGTERM)
+    except:
+        pass
 
 def pack_test():
     for i in widgets:
@@ -119,16 +151,11 @@ def pack_test():
     GoHome.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
 
 
-
 def pack1():
-    #Run Subcommand
-    # t1=threading.Thread(target=start_terminal_1)
-    # t1.start()
+    deleteOldMap()
+    killOpenTerminal()
+    terminal1()
 
-    # time.sleep(2)
-
-    t2=threading.Thread(target=terminal2)
-    t2.start()
     #Pack and Unpack
     mode_text.set("Map Creation Mode")
     for i in widgets:
@@ -149,13 +176,34 @@ def pack1():
     perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
 
 def pack2():
+    terminal2()
+    rospy.sleep(2)
+    killOpenTerminal()
+    rospy.sleep(2)
+    terminal3()
+
     mode_text.set("Localization Mode")
     for i in widgets:
         i.pack_forget()
     for j in screen2:
         j.pack()
 
-    #Widgets go here
+    #frames
+    frame1.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    frame2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    frame3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    bigframe.pack(side=tkinter.TOP,expand=True, fill=tkinter.BOTH)
+
+    #packing buttons onto the frames in a percise order so it looks right
+    SetGoal.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    forward.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    SetHome.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    left.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    hold.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    right.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    # GoGoal.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    back.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    # GoHome.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
 
     perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
 
@@ -166,7 +214,22 @@ def pack3():
     for j in screen3:
         j.pack()
 
-    #Widgets Here
+    #frames
+    frame1.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    frame2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    frame3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    bigframe.pack(side=tkinter.TOP,expand=True, fill=tkinter.BOTH)
+
+    #packing buttons onto the frames in a percise order so it looks right
+    # SetGoal.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    # forward.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    # SetHome.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    # left.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    hold.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    # right.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    GoGoal.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    # back.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    GoHome.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
 
     perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
 
@@ -294,9 +357,6 @@ GoGoal=tkinter.Button( #an empty button which would have a different command but
     command=pubGG
 )
 
-# NextMode=tkinter.Button( #TODOs
-
-# )
 
 #Permanent Buttons
 Mode1=tkinter.Button(
@@ -350,7 +410,8 @@ Mode1.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 
-pack_test()
+pack1()
 
 
 root.mainloop() #tktiner mainloop
+killOpenTerminal()
