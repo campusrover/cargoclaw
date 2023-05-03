@@ -4,7 +4,7 @@ import rospy
 import sys
 import math
 import tf
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
@@ -15,16 +15,17 @@ import signal
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
-"""Good standard starting code for testing a robot"""
+"""Code for moving Cargo Bot"""
 
 class Robot:
     def __init__(self):
         self.OGSpeed=0.2 #original speed of robot
         self.speed=self.OGSpeed #used speed of robot
-        self.turnspeed=1 #rad/sec
+        self.turnspeed=0.7 #rad/sec
         self.x=0 #x position
         self.y=0 #y position
         self.yaw=0 #yaw  
+        self.quat=[]
         self.waypoints=[[],[]]
 
         self.state="H"
@@ -38,8 +39,9 @@ class Robot:
         print(self.waypoints[0])
 
     def createWaypoint(self):
-        return [[self.x,self.y,0],[0,0,0,self.yaw]]
+        return [[self.x,self.y,0],[0,0,self.quat[2],self.quat[3]]]
 
+#Move set
     def goal_pose(self,pose):
         goal_pose = MoveBaseGoal()
         goal_pose.target_pose.header.frame_id = 'map'
@@ -122,9 +124,11 @@ class Robot:
                 print("Going for goal: ", goal)
                 client.send_goal(goal)
                 # client.wait_for_result()
+                self.state="Auto-Move"
+
             except:
                 print("No Waypoint set")
-            self.state="h"
+                self.state='h'
         elif self.state=="sg":
             self.setGoal()
             self.state="h"
@@ -136,7 +140,7 @@ class Robot:
                 # client.wait_for_result()
             except:
                 print("No Waypoint set")
-            self.state="h"
+            self.state="Auto-Move"
         
         elif self.state=="Auto-Move":
             pass
@@ -158,8 +162,18 @@ class Robot:
 
 #Key press callback
 def key_cb(msg):
+    # print(msg)
     if rob.state==msg.data and (rob.state=="f" or rob.state=="b"): #keeps track of if its a double input or not
         rob.state="" + msg.data+""+msg.data
+    elif rob.state=="Auto-Move":
+        if (msg.data=="h"):
+            goal = rob.goal_pose(rob.createWaypoint())
+            print("Going for goal: ", goal)
+            client.send_goal(goal)
+            print("SHOULD HAVE STOPPED")
+            rob.state="h"
+        """Make a waypoint at robots current location, set that waypoint to the goal"""
+
     else:
         rob.state = msg.data
     rob.last_key_press_time = rospy.Time.now()
@@ -170,6 +184,25 @@ def odom_cb(msg):
     rob.y=msg.pose.pose.position.y
     quarternion = [msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w]
     (roll, pitch, rob.yaw) = euler_from_quaternion(quarternion)
+    rob.quat=quarternion
+    # print(rob.quat)
+    
+
+zero_flag=0
+def vel_cb(msg):
+    global zero_flag
+    if rob.state=="Auto-Move":
+        if (msg.linear.x==0)and (msg.angular.z==0):
+            if zero_flag==10:
+                print(str(msg.linear.x)+". FINISHED")
+                rob.state="h"
+                if(rob.state=="gg"):
+                    alien_pub.publish(True)
+                zero_flag=0
+            else:
+                zero_flag+=1
+        else:
+            zero_flag=0
 
 #Controls Shutdown
 def shutdown(sig, stackframe):
@@ -191,9 +224,11 @@ key_sub = rospy.Subscriber('keys', String, key_cb)
 odom_sub = rospy.Subscriber('odom', Odometry, odom_cb)
 cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 ui_pub=rospy.Publisher("UI", String, queue_size=10) #publishes to my own topic with the string for the GUI
+cmd_vel_sub=rospy.Subscriber("cmd_vel", Twist, vel_cb)
+alien_pub=rospy.Publisher("alien_state",Bool, queue_size=1)
 
 client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-client.wait_for_server()
+# client.wait_for_server()
 
 # start in state halted and grab the current time
 rob.last_key_press_time = rospy.Time.now()

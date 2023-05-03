@@ -8,41 +8,41 @@ import numpy as np
 
 class ImageProcessor:
 	
-    def __init__(self):
+	def __init__(self):
 
 		# Get image from the camera
-        self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.process_image)
+		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.process_image)
 		
 		# State the transportation robot (moving - False, halted - True)
 		self.alien_state_sub = rospy.Subscriber("alien_state", Boolean, self.set_state)
 		self.alien_state = False
-        
+		
 		# Send position of the cargo
 		self.cargo_point_pub = rospy.Publisher("cargo_point", Point, queue_size=1)
 
 		# Image processing
-        self.bridge = cv_bridge.CvBridge()
-        self.kernel = np.ones((7,7),np.uint8)
-        
-        # Pixel dimensions of image
-        width_pixels = rospy.get_param("~width_pixels", 640)
-        height_pixels = rospy.get_param("~height_pixels", 480)
+		self.bridge = cv_bridge.CvBridge()
+		self.kernel = np.ones((7,7),np.uint8)
+		
+		# Pixel dimensions of image
+		width_pixels = rospy.get_param("~width_pixels", 640)
+		height_pixels = rospy.get_param("~height_pixels", 480)
 
-        # Physical dimensions captured by image in meters
-        width_phys = rospy.get_param("~width_phys", 0.228)
-        height_phys = rospy.get_param("~height_phys", 0.181)
+		# Physical dimensions captured by image in meters
+		width_phys = rospy.get_param("~width_phys", 0.228)
+		height_phys = rospy.get_param("~height_phys", 0.181)
 
-        # Convert pixels to physical dimensions
-        self.width_ratio = width_phys / width_pixels 
-        self.height_ratio = height_phys / height_pixels 
+		# Convert pixels to physical dimensions
+		self.width_ratio = width_phys / width_pixels 
+		self.height_ratio = height_phys / height_pixels 
 
-        # z distance from arm at rest position to the box
-        self.arm_z = rospy.get_param("~arm_z", 0.1)
+		# z distance from arm at rest position to the box
+		self.arm_z = rospy.get_param("~arm_z", 0.1)
 
 	def set_state(self, msg):
 		self.alien_state = msg.data
 
-    def process_image(self, msg):
+	def process_image(self, msg):
 
 		# Only process if the transportation robot is halted
 		if (alien_state):
@@ -65,6 +65,10 @@ class ImageProcessor:
 			masked = cv2.cvtColor(masked, cv2.COLOR_HSV2BGR)
 			masked = cv2.cvtColor(masked, cv2.COLOR_RGB2GRAY)
 
+			# Get coordinates of the box
+			x = 4
+			y = 4	# Invalid by default. If not changed by computed centroid, forces robot to reposition
+
 			# Compute the centroid
 			M = cv2.moments(masked)
 
@@ -83,8 +87,8 @@ class ImageProcessor:
 
 				print(f"x: {x} y: {y}")
 
-				# Publish the position of the cargo box
-				# self.cargo_point.publish(Point(x, y, self.arm_z))
+			# Publish the position of the cargo box
+			self.cargo_point.publish(Point(x, y, self.arm_z))
 
 			cv2.imshow("image", image)
 			cv2.imshow("masked", masked)

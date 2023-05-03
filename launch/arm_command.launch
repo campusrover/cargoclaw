@@ -1,14 +1,15 @@
 <launch>
-    <node pkg="arm_control" type="control_arm.py" name="control_arm" output="screen" />
-    <!-- <node pkg='arm_control' type='send_command.py' name='send_command' output='screen' /> -->
-    <include file="$(find interbotix_xsarm_control)/launch/xsarm_control.launch" />
+	<!-- Arm nodes-->
+    <node pkg="arm_control" type="control_arm.py" name="control_arm" />
+    <include file="$(find interbotix_xsarm_control)/launch/xsarm_control.launch" >
         <arg name="robot_model" value="px100" />
         <!-- <arg name="use_actual" value="true" /> -->
-        <arg name="use_sim" value="true" /> 
+        <arg name="use_sim" value="true" />
         <!-- <arg name="dof" value="4" />  -->
     </include>
 
     <!-- Camera nodes-->
-    <include file="($find usb_cam)/launch/usb_cam-test.launch" />
-    <node pkg="cargoclaw" type="arm_cam.py" name="arm_cam" output="screen" />
+    <!-- <include file="($find usb_cam)/launch/usb_cam-test.launch" />
+    <node pkg="cargoclaw" type="arm_cam.py" name="arm_cam" output="screen" /> -->
+	<!-- <node pkg="cargoclaw" type="VIBHU'S NODE.py" name="VIBHU'S NODE" output="screen" /> -->
 </launch>
