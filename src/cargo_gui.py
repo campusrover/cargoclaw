@@ -3,6 +3,12 @@ import tkinter #this is the GUI I chose
 from std_msgs.msg import String, Bool
 import rospy
 import rosnode
+<<<<<<< Updated upstream
+=======
+import subprocess
+import threading
+import time
+>>>>>>> Stashed changes
 
 
 widgets=[]
@@ -74,6 +80,16 @@ def updateTime():
     """
     pass
 
+<<<<<<< Updated upstream
+=======
+def start_terminal_1(): #thread
+    command1="roslaunch turtlebot3_gazebo turtlebot3_house.launch"
+    subprocess.run(command1, shell=True,check=True)
+def terminal2():
+    command2="roslaunch turtlebot3_slam turtlebot3_slam.launch"
+    subprocess.run(command2, shell=True, check=True)
+
+>>>>>>> Stashed changes
 
 def pack_test():
     for i in widgets:
@@ -111,6 +127,7 @@ def pack_test():
 
 
 def pack1():
+<<<<<<< Updated upstream
     for i in widgets:
         i.pack_forget()
     for i in screen1:
@@ -127,6 +144,57 @@ def pack2():
 
 def pack3():
     pass
+=======
+    #Run Subcommand
+    # t1=threading.Thread(target=start_terminal_1)
+    # t1.start()
+
+    # time.sleep(2)
+
+    t2=threading.Thread(target=terminal2)
+    t2.start()
+    #Pack and Unpack
+    mode_text.set("Map Creation Mode")
+    for i in widgets:
+        i.pack_forget()
+    for j in screen1:
+        j.pack()
+
+    forward.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    hold.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    left.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    right.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    back.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+    frame1.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    frame2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    frame3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+    bigframe.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
+
+    perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
+
+def pack2():
+    mode_text.set("Localization Mode")
+    for i in widgets:
+        i.pack_forget()
+    for j in screen2:
+        j.pack()
+
+    #Widgets go here
+
+    perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
+
+def pack3():
+    mode_text.set("Self Driving Mode")
+    for i in widgets:
+        i.pack_forget()
+    for j in screen3:
+        j.pack()
+
+    #Widgets Here
+
+    perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
+
+>>>>>>> Stashed changes
 
 
 #All functions that are called by pressing GUI buttons
@@ -138,6 +206,10 @@ def pubR():
     key_pub.publish("r")
 def pubF():
     key_pub.publish("f")
+<<<<<<< Updated upstream
+=======
+    print("Forward")
+>>>>>>> Stashed changes
 def pubB():
     key_pub.publish("b")
 
@@ -258,21 +330,33 @@ GoGoal=tkinter.Button( #an empty button which would have a different command but
 #Permanent Buttons
 Mode1=tkinter.Button(
     perm_frame,
+<<<<<<< Updated upstream
     text="Mode1",
+=======
+    text="Maping",
+>>>>>>> Stashed changes
     bg="yellow",
     command=pack1
 )
 
 Mode2=tkinter.Button(
     perm_frame,
+<<<<<<< Updated upstream
     text="Mode2",
+=======
+    text="Localizing",
+>>>>>>> Stashed changes
     bg="yellow",
     command=pack2
 )
 
 Mode3=tkinter.Button(
     perm_frame,
+<<<<<<< Updated upstream
     text="Mode3",
+=======
+    text="Driving",
+>>>>>>> Stashed changes
     bg="yellow",
     command=pack3
 )

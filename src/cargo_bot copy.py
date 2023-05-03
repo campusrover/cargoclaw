@@ -243,7 +243,6 @@ while not rospy.is_shutdown():
    # print out the current state and time since last key press
 
    # publish cmd_vel from here 
-    
     t = Twist()
 
     rob.checkMove()
