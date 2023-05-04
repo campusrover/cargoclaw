@@ -19,7 +19,7 @@ class SendCommand():
 
         # initialize variables 
         self.x = 0 
-        self.y = 0
+        self.y = 4
         self.z = 0
         self.exit = "exit"
         self.home = "home"
@@ -28,6 +28,9 @@ class SendCommand():
         self.close_gripper = "cg"
         self.open = "open"
         self.close = "close"
+
+        #Subscribers
+        self.point_sub = rospy.Subscriber("cargo_point", Point, self.cargo_point_cb)
         
         # set up publishers for all the different messages that the controller will receive
         self.point_publisher = rospy.Publisher("/arm_control/point", Point, queue_size=1)
@@ -41,31 +44,31 @@ class SendCommand():
         
         self.publisher()
 
-        self.point_sub = rospy.Subscriber("/cargo_point", Point, cargo_point_cb)∏
+        
 
     #base values when robot is perfect positin in front of arm p 0 .04 -.06
     def publisher(self):
         while True: 
-                if is_valid_coordinate(self.point_sub.msg):
-                    self.arm_status_publisher.publish("grabcube")
-                    self.home_publisher.publish(True)
-                    time.sleep(1.5)
-                    self.gripper_publisher.publish(self.open)
-                    time.sleep(1.5)
-                    self.point_publisher.publish(Point(self.x, self.y, self.z))
-                    time.sleep(1.5)
-                    self.gripper_publisher.publish(self.close)
-                    time.sleep(1.5)
-                    self.home_publisher.publish(True)
-                    time.sleep(1.5)
-                    self.point_publisher.publish(Point(+0, -1, -0.12))
-                    time.sleep(1.5)
-                    self.gripper_publisher.publish(self.open)
-                    time.sleep(1.5)
-                    self.point_publisher.publish(Point(0, -1, 0.12))
-                    time.sleep(1.5)
-                    self.sleep_publisher.publish(True)
-                    self.arm_status_publisher.publish("resting")
+            if self.is_valid_coordinate(self.y):
+                self.arm_status_publisher.publish("grabcube")
+                self.home_publisher.publish(True)
+                time.sleep(1.5)
+                self.gripper_publisher.publish(self.open)
+                time.sleep(1.5)
+                self.point_publisher.publish(Point(self.x, self.y, self.z))
+                time.sleep(1.5)
+                self.gripper_publisher.publish(self.close)
+                time.sleep(1.5)
+                self.home_publisher.publish(True)
+                time.sleep(1.5)
+                self.point_publisher.publish(Point(+0, -1, -0.12))
+                time.sleep(1.5)
+                self.gripper_publisher.publish(self.open)
+                time.sleep(1.5)
+                self.point_publisher.publish(Point(0, -1, 0.12))
+                time.sleep(1.5)
+                self.sleep_publisher.publish(True)
+                self.arm_status_publisher.publish("resting")
     
     # def is_dig(self,n):
     #     try:
@@ -74,7 +77,7 @@ class SendCommand():
     #     except ValueError:
     #         return  False
 
-    def is_valid_coordinate(self, msg):
+    def is_valid_coordinate(self, y_value):
         if (self.y > 3.1 or self.y < -3.1):
             self.arm_status_publisher.publish("invalid")
             rospy.loginfo("The box's coordinates are invalid, need to reposition robot")
@@ -86,10 +89,11 @@ class SendCommand():
         self.x = msg.x
         self.y = msg.y
         self.z = msg.z
+        print("coordinates " + self.x + self.y + self. z)
 
 
 if __name__=='__main__':
-    rospy.init_node("send_message")
+    rospy.init_node("box_pickup")
     try:
         SendCommand()
     except rospy.ROSInterruptException:
