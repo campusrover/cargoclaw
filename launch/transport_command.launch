@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="cargoclaw" type="cargo_bot.py" name="cargo_bot" />
+	<node pkg="cargoclaw" type="cargo_gui.py" name="cargo_gui" output="screen" />
+</launch>
