@@ -46,23 +46,29 @@ class SendCommand():
     #base values when robot is perfect positin in front of arm p 0 .04 -.06
     def publisher(self):
         while True: 
-                if is_valid_coordinate(self.point_sub.msg) or True:
+                if is_valid_coordinate(self.y) or True:
                     self.arm_status_publisher.publish("grabcube")
                     self.home_publisher.publish(True)
                     time.sleep(1.5)
                     self.gripper_publisher.publish(self.open)
                     time.sleep(1.5)
-                    self.point_publisher.publish(Point(self.x, self.y, self.z))
+                    self.point_publisher.publish(Point(self.x, self.y, 0))
+                    time.sleep(1.5)
+                    self.point_publisher.publish(Point(0, self.y, self.z))
                     time.sleep(1.5)
                     self.gripper_publisher.publish(self.close)
                     time.sleep(1.5)
+                    self.point_publisher.publish(Point(0, self.y, -self.z))
+                    time.sleep(1.5)
                     self.home_publisher.publish(True)
                     time.sleep(1.5)
-                    self.point_publisher.publish(Point(+0, -1, -0.12))
+                    self.point_publisher.publish(Point(0, -1.2, 0))
+                    time.sleep(1.5)
+                    self.point_publisher.publish(Point(-.11, -1, 0))
+                    time.sleep(1.5)
+                    self.point_publisher.publish(Point(0, -1, -.08))
                     time.sleep(1.5)
                     self.gripper_publisher.publish(self.open)
-                    time.sleep(1.5)
-                    self.point_publisher.publish(Point(0, -1, 0.12))
                     time.sleep(1.5)
                     self.sleep_publisher.publish(True)
                     self.arm_status_publisher.publish("resting")
@@ -74,7 +80,7 @@ class SendCommand():
     #     except ValueError:
     #         return  False
 
-    def is_valid_coordinate(self, msg):
+    def is_valid_coordinate(self, y):
         if (self.y > 3.1 or self.y < -3.1):
             self.arm_status_publisher.publish("invalid")
             rospy.loginfo("The box's coordinates are invalid, need to reposition robot")
@@ -84,7 +90,7 @@ class SendCommand():
 
     def cargo_point_cb(self, msg):
         self.x = msg.x
-        self.y = msg.y
+        self.y = 0.00244 * msg.y - 0.62687
         self.z = msg.z
 
 
