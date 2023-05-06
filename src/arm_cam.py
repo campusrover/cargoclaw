@@ -52,8 +52,8 @@ class ImageProcessor:
 			# Yellow mask
 			hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-			lower_yellow = np.array([ 25, 0, 230 ])
-			upper_yellow = np.array([ 255, 255, 255 ])
+			lower_yellow = np.array([ 80, 0, 230 ])
+			upper_yellow = np.array([ 90, 255, 255 ])
 			mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 			
 			# Remove noise from mask
@@ -91,13 +91,13 @@ class ImageProcessor:
 			self.cargo_point_pub.publish(Point(x, y, self.arm_z))
 
 			cv2.imshow("image", image)
-#			cv2.imshow("hsv", hsv)
+			# cv2.imshow("hsv", hsv)
 			cv2.imshow("masked", masked)
 
 			cv2.waitKey(3)
 			
-			#temp testing and setting state to false
-#			self.alien_state = False
+			# Do not continually process images
+			self.alien_state = False
 
 rospy.init_node("arm_cam")
 image_processor = ImageProcessor()
