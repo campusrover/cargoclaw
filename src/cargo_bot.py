@@ -124,7 +124,7 @@ class Robot:
                 print("Going for goal: ", goal)
                 client.send_goal(goal)
                 # client.wait_for_result()
-                self.state="Auto-Move"
+                self.state="Auto-Move-Home"
 
             except:
                 print("No Waypoint set")
@@ -140,9 +140,11 @@ class Robot:
                 # client.wait_for_result()
             except:
                 print("No Waypoint set")
-            self.state="Auto-Move"
+            self.state="Auto-Move-Goal"
         
-        elif self.state=="Auto-Move":
+        elif self.state=="Auto-Move-Goal":
+            pass
+        elif self.state=="Auto-Move-Home":
             pass
 
         elif self.state=="h":
@@ -165,7 +167,7 @@ def key_cb(msg):
     # print(msg)
     if rob.state==msg.data and (rob.state=="f" or rob.state=="b"): #keeps track of if its a double input or not
         rob.state="" + msg.data+""+msg.data
-    elif rob.state=="Auto-Move":
+    elif rob.state=="Auto-Move-Home" or rob.state=="Auto-Move-Goal":
         if (msg.data=="h"):
             goal = rob.goal_pose(rob.createWaypoint())
             print("Going for goal: ", goal)
@@ -191,13 +193,13 @@ def odom_cb(msg):
 zero_flag=0
 def vel_cb(msg):
     global zero_flag
-    if rob.state=="Auto-Move":
+    if rob.state=="Auto-Move-Home" or rob.state=="Auto-Move-Goal" :
         if (msg.linear.x==0)and (msg.angular.z==0):
             if zero_flag==10:
                 print(str(msg.linear.x)+". FINISHED")
-                rob.state="h"
-                if(rob.state=="gg"):
+                if(rob.state=="Auto-Move-Goal"):
                     alien_pub.publish(True)
+                rob.state="h"
                 zero_flag=0
             else:
                 zero_flag+=1

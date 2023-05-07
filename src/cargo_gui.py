@@ -33,7 +33,7 @@ def state_cb(msg):
 def arm_cb(msg):
     if (msg.data=="invalid"):
         rob.GoHome()
-        time.sleep(3)
+        time.sleep(4)
         rob.GoGoal()
     elif(msg.data=="resting"):
         time.sleep(2)
@@ -93,7 +93,7 @@ def terminal1():
     global pro
     command="roslaunch turtlebot3_slam turtlebot3_slam.launch"
     # subprocess.run(command, shell=True, check=True)
-    pro=subprocess.Popen(command, stdout=subprocess.PIPE,shell=True,preexec_fn=os.setsid)
+    pro=subprocess.Popen(command,shell=True,preexec_fn=os.setsid)
 def terminal2():
     global pro
     command="rosrun map_server map_saver -f ~/cargomap" 
@@ -102,7 +102,7 @@ def terminal2():
 def terminal3():
     global pro
     command="roslaunch turtlebot3_navigation turtlebot3_navigation.launch map_file:=$HOME/cargomap.yaml"
-    pro=subprocess.Popen(command, stdout=subprocess.PIPE,shell=True,preexec_fn=os.setsid)
+    pro=subprocess.Popen(command, shell=True,preexec_fn=os.setsid)
 
 def deleteOldMap():#TODO add a line to delete the old map?
     global pro
