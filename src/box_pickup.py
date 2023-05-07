@@ -23,15 +23,15 @@ class SendCommand():
 		self.open = "open"
 		self.close = "close"
 		self.state = ""
-        self.x_transform_bins = [0.10403, 0.10855, 0.11395, 0.11774, 0.12060, 0.12629, 0.13075]
-        self.x_transforms = [-.03, -.02, -.01, 0, .01, .02, .03]
-        
+		self.x_transform_bins = [0.10403, 0.10855, 0.11395, 0.11774, 0.12060, 0.12629, 0.13075]
+		self.x_transforms = [-.03, -.02, -.01, 0, .01, .02, .03]
+		
 
 		#Subscribers
 		self.point_sub = rospy.Subscriber("cargo_point", Point, self.cargo_point_cb)
 
 		self.alien_state_sub = rospy.Subscriber("alien_state", Bool, self.set_state)
-		self.alien_state = True
+		self.alien_state = False
 		
 		# set up publishers for all the different messages that the controller will receive
 		self.point_publisher = rospy.Publisher("/arm_control/point", Point, queue_size=1)
@@ -46,10 +46,12 @@ class SendCommand():
 
 	# Transform polar coordinates into arm command coordinates
 	# TODO: FIGURE OUT TRANS_X
-	def trans_x(self, radius)
+	def trans_x(self, radius):
+		print("radius"+ str(radius))
+		print("closest midpoint index: " + str(numpy.searchsorted(self.x_transform_bins, radius)))
 		return self.x_transforms[numpy.searchsorted(self.x_transform_bins, radius)]
 	def trans_y(self, theta):
-		return 0.16092*theta**3-0.0152*theta**2-0.77837*theta+0.01092
+		return 0.1372*theta**3-0.0177*theta**2-0.8057*theta+0.0691
 
 	def set_state(self, msg):
 		self.alien_state = msg.data
@@ -59,6 +61,7 @@ class SendCommand():
 		if self.is_valid_coordinate(self.y):
 			self.state = "grabcube"
 			self.arm_status_publisher.publish(self.state)
+			time.sleep(1.5)
 			self.home_publisher.publish(True)
 			time.sleep(1.5)
 			self.gripper_publisher.publish(self.open)
@@ -66,11 +69,13 @@ class SendCommand():
 			print(self.x, self.y)
 			self.point_publisher.publish(Point(0, self.y, 0))
 			time.sleep(1.5)
-            self.point_publisher.publish(Point(self.x, self.y, 0))
-			time.sleep(1.5)
-            self.point_publisher.publish(Point(0, self.y, self.z))
+			self.point_publisher.publish(Point(self.x, self.y, 0))
+			time.sleep(3)
+			self.point_publisher.publish(Point(0, self.y, self.z))
 			time.sleep(1.5)
 			self.gripper_publisher.publish(self.close)
+			time.sleep(1.5)
+			self.point_publisher.publish(Point(0, self.y, -self.z + .01))
 			time.sleep(1.5)
 			self.home_publisher.publish(True)
 			time.sleep(1.5)
@@ -87,9 +92,13 @@ class SendCommand():
 			time.sleep(3)
 			self.point_publisher.publish(Point(.08, -1.2, 0))
 			time.sleep(2)
+			self.point_publisher.publish(Point(0, -1.2, .08))
+			time.sleep(2)
 			self.home_publisher.publish(True)
 			time.sleep(2)
 			self.sleep_publisher.publish(True)
+			time.sleep(2)
+			self.gripper_publisher.publish(self.close)
 			self.state = "resting"
 			self.has_run = True
 			self.arm_status_publisher.publish(self.state)
@@ -115,7 +124,8 @@ class SendCommand():
 		if (self.alien_state):
 			self.alien_state = False
 			x = msg.x
-			y = msg.y
+			# transform so that the origin is center of arm instead of corner of image
+			y = msg.y-0.0886146
 			self.z = msg.z      # No conversion necessary
 
 			# Convert to polar
