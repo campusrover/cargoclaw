@@ -23,7 +23,9 @@ class SendCommand():
 		self.open = "open"
 		self.close = "close"
 		self.state = ""
-		self.has_run = False
+        self.x_transform_bins = [0.10403, 0.10855, 0.11395, 0.11774, 0.12060, 0.12629, 0.13075]
+        self.x_transforms = [-.03, -.02, -.01, 0, .01, .02, .03]
+        
 
 		#Subscribers
 		self.point_sub = rospy.Subscriber("cargo_point", Point, self.cargo_point_cb)
@@ -44,17 +46,17 @@ class SendCommand():
 
 	# Transform polar coordinates into arm command coordinates
 	# TODO: FIGURE OUT TRANS_X
-	def trans_x(self, x):
-		return 0
-	def trans_y(self, y):
-		return -1.37406*y+0.94325
+	def trans_x(self, radius)
+		return self.x_transforms[numpy.searchsorted(self.x_transform_bins, radius)]
+	def trans_y(self, theta):
+		return 0.16092*theta**3-0.0152*theta**2-0.77837*theta+0.01092
 
 	def set_state(self, msg):
 		self.alien_state = msg.data
 
 	#base values when robot is perfect position in front of arm p 0 .04 -.06
 	def publisher(self):
-		if self.is_valid_coordinate(self.y) and not self.has_run:
+		if self.is_valid_coordinate(self.y):
 			self.state = "grabcube"
 			self.arm_status_publisher.publish(self.state)
 			self.home_publisher.publish(True)
@@ -62,7 +64,11 @@ class SendCommand():
 			self.gripper_publisher.publish(self.open)
 			time.sleep(1.5)
 			print(self.x, self.y)
-			self.point_publisher.publish(Point(self.x, self.y, self.z))
+			self.point_publisher.publish(Point(0, self.y, 0))
+			time.sleep(1.5)
+            self.point_publisher.publish(Point(self.x, self.y, 0))
+			time.sleep(1.5)
+            self.point_publisher.publish(Point(0, self.y, self.z))
 			time.sleep(1.5)
 			self.gripper_publisher.publish(self.close)
 			time.sleep(1.5)
@@ -73,7 +79,7 @@ class SendCommand():
 	def drop_cargo(self):
 			self.point_publisher.publish(Point(0, -1.2, 0))
 			time.sleep(2)
-			self.point_publisher.publish(Point(0, -1.2, -0.06))
+			self.point_publisher.publish(Point(0, -1.2, -0.08))
 			time.sleep(5)
 			self.point_publisher.publish(Point(-.08, -1.2, 0))
 			time.sleep(2)
@@ -121,11 +127,11 @@ class SendCommand():
 			self.y = self.trans_y(t)
 
 			# Adjust for orientation of cube
-			if t > 0.87:
+			if self.y > 0.2:
 				if self.y > 0:
-					self.y += .04
-				else:
-					self.y -= 0.04
+					self.y += .05
+				# else:
+				# 	self.y -= 0.05
 
 			self.publisher()
 
