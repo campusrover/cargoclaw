@@ -15,7 +15,7 @@ class ImageProcessor:
 		
 		# State the transportation robot (moving - False, halted - True)
 		self.alien_state_sub = rospy.Subscriber("alien_state", Bool, self.set_state)
-		self.alien_state = True
+		self.alien_state = False
 		
 		# Send position of the cargo
 		self.cargo_point_pub = rospy.Publisher("cargo_point", Point, queue_size=10)
