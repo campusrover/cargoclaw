@@ -32,12 +32,13 @@ def state_cb(msg):
 
 def arm_cb(msg):
     if (msg.data=="invalid"):
-        rob.GoHome()
+        pubGH()
         time.sleep(4)
-        rob.GoGoal()
+        pubGG()
     elif(msg.data=="resting"):
         time.sleep(2)
-        rob.GoHome()
+        pubGH()
+
 
 #creates all the text variables for displaying the robot data
 mode_text=tkinter.StringVar()
