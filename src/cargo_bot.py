@@ -195,9 +195,9 @@ def vel_cb(msg):
         if (msg.linear.x==0)and (msg.angular.z==0):
             if zero_flag==10:
                 print(str(msg.linear.x)+". FINISHED")
-                rob.state="h"
                 if(rob.state=="gg"):
                     alien_pub.publish(True)
+                rob.state="h"
                 zero_flag=0
             else:
                 zero_flag+=1
