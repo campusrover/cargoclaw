@@ -18,7 +18,7 @@ class ImageProcessor:
 		self.alien_state = True
 		
 		# Send position of the cargo
-		self.cargo_point_pub = rospy.Publisher("cargo_point", Point, queue_size=1)
+		self.cargo_point_pub = rospy.Publisher("cargo_point", Point, queue_size=10)
 
 		# Image processing
 		self.bridge = cv_bridge.CvBridge()
@@ -87,6 +87,9 @@ class ImageProcessor:
 
 				print(f"x: {x} y: {y}")
 
+			else:
+				print("no cargo detected")
+
 			# Publish the position of the cargo box
 			self.cargo_point_pub.publish(Point(x, y, self.arm_z))
 
@@ -95,9 +98,6 @@ class ImageProcessor:
 			cv2.imshow("masked", masked)
 
 			cv2.waitKey(3)
-			
-			# Do not continually process images
-			self.alien_state = False
 
 rospy.init_node("arm_cam")
 image_processor = ImageProcessor()
