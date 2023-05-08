@@ -123,6 +123,8 @@ def pack_test():
         i.pack_forget()
     mode_text.set("Test Mode")
 
+    terminal3()
+
     mode_label.pack(side=tkinter.TOP)
 
     #creating labels to display robot data
@@ -426,7 +428,7 @@ Mode1.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 
-pack1()
+pack_test()
 
 
 root.bind("w",pubF_key)

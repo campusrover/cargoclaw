@@ -41,14 +41,12 @@ class SendCommand():
 		self.exit_publisher = rospy.Publisher("/arm_control/exit", Bool, queue_size=1)
 		self.time_publisher = rospy.Publisher("/arm/time", Float32, queue_size=1)
 		self.arm_status_publisher = rospy.Publisher("/arm_status", String, queue_size=1)
-		
-		self.publisher()
-
+	
 	# Transform polar coordinates into arm command coordinates
 	# TODO: FIGURE OUT TRANS_X
 	def trans_x(self, radius):
 		print("radius"+ str(radius))
-		print("closest midpoint index: " + str(numpy.searchsorted(self.x_transform_bins, radius)))
+		print("closest midpoint index: " + str(numpy.searchsorted(self.x_transform_bins, radius)))	
 		return self.x_transforms[numpy.searchsorted(self.x_transform_bins, radius)]
 	def trans_y(self, theta):
 		return 0.1372*theta**3-0.0177*theta**2-0.8057*theta+0.0691
@@ -58,7 +56,6 @@ class SendCommand():
 
 	#base values when robot is perfect position in front of arm p 0 .04 -.06
 	def publisher(self):
-		if self.is_valid_coordinate(self.y):
 			self.state = "grabcube"
 			self.arm_status_publisher.publish(self.state)
 			time.sleep(1.5)
@@ -91,8 +88,8 @@ class SendCommand():
 			self.gripper_publisher.publish(self.open)
 			time.sleep(3)
 			self.point_publisher.publish(Point(.08, -1.2, 0))
-			time.sleep(2)
-			self.point_publisher.publish(Point(0, -1.2, .08))
+			time.sleep(3)
+			self.point_publisher.publish(Point(0, -1.2, .1))
 			time.sleep(2)
 			self.home_publisher.publish(True)
 			time.sleep(2)
@@ -110,8 +107,9 @@ class SendCommand():
 	#     except ValueError:
 	#         return  False
 
-	def is_valid_coordinate(self, y_value):
-		if (self.y > 3.1 or self.y < -3.1):
+	def is_valid_coordinate(self, y_value, radius, z_value):
+		print(f"IS VALID {y_value}, {radius}, {z_value}")
+		if ((y_value > 3.1 or y_value < -3.1) or (radius < .09975 or radius > .13609) or (z_value == 10)):
 			self.state = "invalid"
 			self.arm_status_publisher.publish(self.state)
 			rospy.loginfo("The box's coordinates are invalid, need to reposition robot")
@@ -132,18 +130,31 @@ class SendCommand():
 			r = numpy.sqrt(x**2 + y**2)
 			t = numpy.arctan2(y, x)
 
-			# Transform polar coordinates to arm command coordinates
-			self.x = self.trans_x(r)
+			print(f"radius: {r} theta: {t}")
+
 			self.y = self.trans_y(t)
+			# Transform polar coordinates to arm command coordinates
+			if (self.is_valid_coordinate(self.y, r, self.z)):
+				self.x = self.trans_x(r)
+				print(f"original: {self.x}, {self.y}")
 
-			# Adjust for orientation of cube
-			if self.y > 0.2:
-				if self.y > 0:
-					self.y += .05
-				# else:
-				# 	self.y -= 0.05
-
-			self.publisher()
+				# Adjust for orientation of cube
+				if self.y < 0:
+					if self.y > -0.2:
+						self.y -= .04
+					elif self.y > -0.4:
+						self.y -= .05
+					else:
+						self.y -= .1
+				else:
+					if self.y < 0.2:
+						self.y += .02
+					elif self.y < 0.4:
+						self.y += .05
+					else:
+						self.y += .1	
+				
+				self.publisher()
 
 '''
 if __name__=='__main__':
