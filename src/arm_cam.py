@@ -65,10 +65,6 @@ class ImageProcessor:
 			masked = cv2.cvtColor(masked, cv2.COLOR_HSV2BGR)
 			masked = cv2.cvtColor(masked, cv2.COLOR_RGB2GRAY)
 
-			# Get coordinates of the box
-			x = 4
-			y = 4	# Invalid by default. If not changed by computed centroid, forces robot to reposition
-
 			# Compute the centroid
 			M = cv2.moments(masked)
 
@@ -78,8 +74,17 @@ class ImageProcessor:
 				# Compute centroid
 				x_pixels = int(M['m10']/M['m00'])
 				y_pixels = int(M['m01']/M['m00'])
+				print(f"CENTROID x pix: {x_pixels} y pix: {y_pixels}")
 
-				print(f"x pix: {x_pixels} y pix: {y_pixels}")
+				# Perform contouring to find rectangle
+#				contours, hierarchy = cv2.findContours(masked, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+#				cnt = contours[0]
+#				rect = cv2.minAreaRect(cnt)
+
+#				x_pixels = rect[0][0]
+#				y_pixels = rect[0][1]
+
+#				print(f"RECT x pix: {x_pixels} y pix: {y_pixels}")
 
 				# Compute physical x/y coordinates
 				x = x_pixels*self.width_ratio
@@ -87,11 +92,12 @@ class ImageProcessor:
 
 				print(f"x: {x} y: {y}")
 
+				# Publish the position of the cargo box
+				self.cargo_point_pub.publish(Point(x, y, self.arm_z))
+
 			else:
 				print("no cargo detected")
-
-			# Publish the position of the cargo box
-			self.cargo_point_pub.publish(Point(x, y, self.arm_z))
+				self.cargo_point_pub.publish(Point(0, 0, 10))	# Invalid z
 
 			cv2.imshow("image", image)
 			# cv2.imshow("hsv", hsv)
