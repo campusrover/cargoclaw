@@ -21,19 +21,16 @@ root.wm_title("Control Panel") #set window name
 root.geometry("500x600") #set size of window
 
 message=" "
-def ui_cb(msg): #recives string from robot node
+def ui_cb(msg): #recives string from robot node and displays data
     global message
     message=str(msg.data)
     updateMessages()
     updateTime()
 
-def state_cb(msg):
-    key_pub.publish("gh")
-
-def arm_cb(msg):
+def arm_cb(msg): #sent from arm node, controls when robot leaves arm location
     if (msg.data=="invalid"):
         rob.GoHome()
-        time.sleep(4)
+        time.sleep(10)
         rob.GoGoal()
     elif(msg.data=="resting"):
         time.sleep(2)
@@ -72,23 +69,9 @@ def updateMessages():
         text4.set(" ")
         text5.set(" ")
 
-def updateTime():
-    """
-    IDEA 1:
-    make a heartbeat publisher that publishes in the main loop of the other node saying that it still exists,
-    and if a certain amount of time has elapsed since GUI heartbeat_cb has run, then you display it stopped,
-    and if there is a manual exit, send that through the heartbeat topic.
 
-    IDEA 2:
-    Google if there is a way in ROS to tell the status of another node.
-    """
-    pass
-
+#all of these are terminal commands launched through subprocess package as Popen so it can be closed from the code
 pro=subprocess
-# def start_terminal_1(): #thread
-#     global pro
-#     command="roslaunch turtlebot3_gazebo turtlebot3_house.launch"
-#     subprocess.run(command, shell=True,check=True)
 def terminal1():
     global pro
     command="roslaunch turtlebot3_slam turtlebot3_slam.launch"
@@ -104,23 +87,25 @@ def terminal3():
     command="roslaunch turtlebot3_navigation turtlebot3_navigation.launch map_file:=$HOME/cargomap.yaml"
     pro=subprocess.Popen(command, shell=True,preexec_fn=os.setsid)
 
-def deleteOldMap():#TODO add a line to delete the old map?
+def deleteOldMap():#deletes old map
     global pro
     command="rm -r cargomap.*"
     subprocess.run(command, shell=True)
     print("deleted")
 
-def killOpenTerminal():
+def killOpenTerminal(): #kills the open subprocess
     global pro
     try:
         os.killpg(os.getpgid(pro.pid),signal.SIGTERM)
     except:
         pass
 
-def pack_test():
+def pack_test():#loads testing screen to GUI
     for i in widgets:
         i.pack_forget()
     mode_text.set("Test Mode")
+    
+    terminal3()
 
     mode_label.pack(side=tkinter.TOP)
 
@@ -136,7 +121,7 @@ def pack_test():
     frame2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
     frame3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
     bigframe.pack(side=tkinter.TOP,expand=True, fill=tkinter.BOTH)
-    perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
+    # perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
 
 
     #packing buttons onto the frames in a percise order so it looks right
@@ -151,7 +136,7 @@ def pack_test():
     GoHome.pack(side=tkinter.TOP, expand=True, fill=tkinter.BOTH)
 
 
-def pack1():
+def pack1(): #loads screen 1 to GUI
     deleteOldMap()
     killOpenTerminal()
     terminal1()
@@ -175,7 +160,7 @@ def pack1():
 
     perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
 
-def pack2():
+def pack2(): #Loads screen 2 to GUI
     terminal2()
     rospy.sleep(2)
     killOpenTerminal()
@@ -207,7 +192,7 @@ def pack2():
 
     perm_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH)
 
-def pack3():
+def pack3(): #loads screen 3 to GUI
     mode_text.set("Self Driving Mode")
     for i in widgets:
         i.pack_forget()
@@ -365,7 +350,7 @@ SetGoal=tkinter.Button(
     command=pubSG
 )
 
-GoGoal=tkinter.Button( #an empty button which would have a different command but I ran out of time
+GoGoal=tkinter.Button(
     frame3,
     text="Go Goal",
     bg="grey",
@@ -395,6 +380,7 @@ Mode3=tkinter.Button(
     command=pack3
 )
 
+#adding widgets to widget list for easy deletion
 widgets.append(mode_label)
 widgets.append(label1)
 widgets.append(label2)
@@ -425,9 +411,13 @@ Mode1.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 
-pack1()
+"""THIS SHOULD BE THE SCREEN YOU WANT TO START WITH.
+YOU SHOULD EITHER DO pack_test() IF YOU WANT TO SKIPP MAPPING AND 
+YOU ALREADY HAVE A MAP, OR YOU SHOULD DO pack1() IF YOU WANT
+TO RUN LIKE NORMAL"""
+pack_test()
 
-
+#binding functions to the keyboard
 root.bind("w",pubF_key)
 root.bind("s",pubB_key)
 root.bind("a",pubL_key)

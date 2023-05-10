@@ -25,24 +25,23 @@ class Robot:
         self.x=0 #x position
         self.y=0 #y position
         self.yaw=0 #yaw  
-        self.quat=[]
-        self.waypoints=[[],[]]
+        self.quat=[] #quaternion of movement
+        self.waypoints=[[],[]] #both waypoints
 
         self.state="H"
         self.last_key_press_time=rospy.Time.now()
     
-    def setHome(self):
+    def setHome(self): #sets home waypoint
         self.waypoints[0]=self.createWaypoint()
         print(self.waypoints[0])
-    def setGoal(self):
+    def setGoal(self): #sets goal waypoint
         self.waypoints[1]=self.createWaypoint()
         print(self.waypoints[0])
 
-    def createWaypoint(self):
+    def createWaypoint(self): #creates a new waypoint using current position
         return [[self.x,self.y,0],[0,0,self.quat[2],self.quat[3]]]
 
-#Move set
-    def goal_pose(self,pose):
+    def goal_pose(self,pose): #actual move base command from Patrol.py
         goal_pose = MoveBaseGoal()
         goal_pose.target_pose.header.frame_id = 'map'
         goal_pose.target_pose.pose.position.x = pose[0][0]
@@ -57,10 +56,6 @@ class Robot:
     def clear(self): #clears output
         os.system('clear')
 
-    def checkDist(self,x1,y1,x2,y2): #Performs a simple calculation to find the distance between the current x and y position and the start position
-        x3=(x1-x2)**2
-        y3=(y1-y2)**2
-        return math.sqrt(x3+y3)
 
     # print the state of the robot
     def print_state(self):
@@ -68,14 +63,12 @@ class Robot:
         # self.clear()
         # # calculate time since last key stroke
         time_since = rospy.Time.now() - self.last_key_press_time
-    
         # #print for terminal
         # print("---")
         # # print("Velocity: " + str(self.vel))
         # print("Position: ("+ str(self.x)+","+ str(self.y)+")")
         # print("SECS SINCE LAST KEY PRESS: " + str(time_since.secs))
         # print("---")
-    
         # #return as single string for GUI
         return("---\nSTATE: " + self.state+"\nPosition: ( x= "+ str(self.x)+", y="+ str(self.y)+")\nSECS SINCE LAST BUTTON PRESS: " + str(time_since.secs)+"\n---")
     
@@ -96,7 +89,7 @@ class Robot:
     def turnHold(self): #stops turn
         t.angular.z = 0.0
 
-    def checkMove(self):
+    def checkMove(self): #moves depending on the current state
         if self.state=="ff" or self.state=="bb":
             self.speed=self.OGSpeed+0.2
         else:
@@ -125,7 +118,6 @@ class Robot:
                 client.send_goal(goal)
                 # client.wait_for_result()
                 self.state="Auto-Move-Home"
-
             except:
                 print("No Waypoint set")
                 self.state='h'
@@ -155,7 +147,7 @@ class Robot:
             self.turnHold()
         
 
-    def shutdown(self,sig, stackframe):
+    def shutdown(self,sig, stackframe): #shutdown call back to stop robot
         print("Exit because of ^c")
         self.moveHold()
         self.turnHold()
@@ -180,7 +172,7 @@ def key_cb(msg):
         rob.state = msg.data
     rob.last_key_press_time = rospy.Time.now()
 
-# odom data
+# odom data call back
 def odom_cb(msg):
     rob.x=msg.pose.pose.position.x
     rob.y=msg.pose.pose.position.y
@@ -190,7 +182,8 @@ def odom_cb(msg):
     # print(rob.quat)
     
 
-zero_flag=0
+#current motion published callback, used to check if the robot is moving with movebase
+zero_flag=0 #flag for if movement has happened recently
 def vel_cb(msg):
     global zero_flag
     if rob.state=="Auto-Move-Home" or rob.state=="Auto-Move-Goal" :
@@ -222,15 +215,15 @@ rob=Robot()
 
 
 # RUN rosrun prrexamples key_publisher.py to get /keys
-key_sub = rospy.Subscriber('keys', String, key_cb) 
-odom_sub = rospy.Subscriber('odom', Odometry, odom_cb)
-cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
+key_sub = rospy.Subscriber('keys', String, key_cb)  #catches the published key
+odom_sub = rospy.Subscriber('odom', Odometry, odom_cb) #subscriber for odometry
+cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10) #publisher for cmd_vel
 ui_pub=rospy.Publisher("UI", String, queue_size=10) #publishes to my own topic with the string for the GUI
-cmd_vel_sub=rospy.Subscriber("cmd_vel", Twist, vel_cb)
-alien_pub=rospy.Publisher("alien_state",Bool, queue_size=1)
+cmd_vel_sub=rospy.Subscriber("cmd_vel", Twist, vel_cb) #subscriber for cmd_vel
+alien_pub=rospy.Publisher("alien_state",Bool, queue_size=1) #publisher for alien state, used in the camera node.
 
-client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-# client.wait_for_server()
+client = actionlib.SimpleActionClient('move_base', MoveBaseAction) #used for move_base package
+# client.wait_for_server() #commented due to startup issue
 
 # start in state halted and grab the current time
 rob.last_key_press_time = rospy.Time.now()
@@ -240,8 +233,6 @@ rate = rospy.Rate(10)
 
 # Wait for published topics, exit on ^c
 while not rospy.is_shutdown():
-
-   # print out the current state and time since last key press
 
    # publish cmd_vel from here 
     t = Twist()
