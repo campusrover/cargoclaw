@@ -4,155 +4,144 @@ A basic ROS command line controller for the Interbotix PX100 Arm.
 Run the program, read the README or code, to find more details about the commands
 """
 
-import rospy, numpy, time
+import rospy, numpy
 from geometry_msgs.msg import Point
 from std_msgs.msg import Bool, String, Float32
 
 class SendCommand():
 
 	def __init__(self):
-		# initialize variables 
+
+		# Coordinates to be sent to the arm
 		self.x = 0 
-		self.y = 4
+		self.y = 0
 		self.z = 0
-		self.exit = "exit"
-		self.home = "home"
-		self.sleep = "sleep"
-		self.open_gripper = "og"
-		self.close_gripper = "cg"
-		self.open = "open"
-		self.close = "close"
-		self.state = ""
-		self.x_transform_bins = [0.10403, 0.10855, 0.11395, 0.11774, 0.12060, 0.12629, 0.13075]
-		self.x_transforms = [-.03, -.02, -.01, 0, .01, .02, .03]
 		
+		# Radius conversion to arm command
+		self.x_transform_bins = [0.10403, 0.10855, 0.11395, 0.11774, 0.12060, 0.12629, 0.13075, 0.13609]
+		self.x_transform_commands = [-.03, -.02, -.01, 0, .01, .02, .03, 0.3]
+		
+		# Cargo's physical coordinates
+		self.cargo_point_sub = rospy.Subscriber("cargo_point", Point, self.cargo_point_cb)
 
-		#Subscribers
-		self.point_sub = rospy.Subscriber("cargo_point", Point, self.cargo_point_cb)
-
+		# Coordinate with the transportation robot
 		self.alien_state_sub = rospy.Subscriber("alien_state", Bool, self.set_state)
-		self.alien_state = False
-		
-		# set up publishers for all the different messages that the controller will receive
+		self.alien_state = True
+
+		self.arm_status_publisher = rospy.Publisher("/arm_status", String, queue_size=1)
+
+		# Send commands to arm
 		self.point_publisher = rospy.Publisher("/arm_control/point", Point, queue_size=1)
 		self.home_publisher = rospy.Publisher("/arm_control/home", Bool, queue_size=1)
 		self.sleep_publisher = rospy.Publisher("/arm_control/sleep", Bool, queue_size=1)
 		self.gripper_publisher = rospy.Publisher("/arm_control/gripper", String, queue_size=1)
-		self.exit_publisher = rospy.Publisher("/arm_control/exit", Bool, queue_size=1)
-		self.time_publisher = rospy.Publisher("/arm/time", Float32, queue_size=1)
-		self.arm_status_publisher = rospy.Publisher("/arm_status", String, queue_size=1)
-		
-		self.publisher()
-
+	
 	# Transform polar coordinates into arm command coordinates
-	# TODO: FIGURE OUT TRANS_X
 	def trans_x(self, radius):
-		print("radius"+ str(radius))
-		print("closest midpoint index: " + str(numpy.searchsorted(self.x_transform_bins, radius)))
-		return self.x_transforms[numpy.searchsorted(self.x_transform_bins, radius)]
+		return self.x_transform_commands[numpy.searchsorted(self.x_transform_bins, radius)]
 	def trans_y(self, theta):
-		return 0.1372*theta**3-0.0177*theta**2-0.8057*theta+0.0691
+		return 0.1372*theta**3-0.0177*theta**2-0.8057*theta+.0291
 
+	# True if robot has finished moving to loading zone and False otherwise
 	def set_state(self, msg):
 		self.alien_state = msg.data
 
-	#base values when robot is perfect position in front of arm p 0 .04 -.06
-	def publisher(self):
-		if self.is_valid_coordinate(self.y):
-			self.state = "grabcube"
-			self.arm_status_publisher.publish(self.state)
-			time.sleep(1.5)
+	# Pick up cargo with given coordinates
+	def pickup(self):
+			self.arm_status_publisher.publish("grabcube")
+			rospy.sleep(1.5)
 			self.home_publisher.publish(True)
-			time.sleep(1.5)
-			self.gripper_publisher.publish(self.open)
-			time.sleep(1.5)
-			print(self.x, self.y)
+			rospy.sleep(1.5)
+			self.gripper_publisher.publish("open")
+			rospy.sleep(1.5)
 			self.point_publisher.publish(Point(0, self.y, 0))
-			time.sleep(1.5)
+			rospy.sleep(3)
 			self.point_publisher.publish(Point(self.x, self.y, 0))
-			time.sleep(3)
+			rospy.sleep(3)
 			self.point_publisher.publish(Point(0, self.y, self.z))
-			time.sleep(1.5)
-			self.gripper_publisher.publish(self.close)
-			time.sleep(1.5)
+			rospy.sleep(3)
+			self.gripper_publisher.publish("close")
+			rospy.sleep(1.5)
 			self.point_publisher.publish(Point(0, self.y, -self.z + .01))
-			time.sleep(1.5)
+			rospy.sleep(1.5)
 			self.home_publisher.publish(True)
-			time.sleep(1.5)
-			self.drop_cargo()
+			rospy.sleep(1.5)
 
+	# Drop cargo to preset destination zone
 	def drop_cargo(self):
 			self.point_publisher.publish(Point(0, -1.2, 0))
-			time.sleep(2)
+			rospy.sleep(2)
 			self.point_publisher.publish(Point(0, -1.2, -0.08))
-			time.sleep(5)
+			rospy.sleep(3)
 			self.point_publisher.publish(Point(-.08, -1.2, 0))
-			time.sleep(2)
-			self.gripper_publisher.publish(self.open)
-			time.sleep(3)
+			rospy.sleep(3)
+			self.gripper_publisher.publish("open")
+			rospy.sleep(3)
 			self.point_publisher.publish(Point(.08, -1.2, 0))
-			time.sleep(2)
-			self.point_publisher.publish(Point(0, -1.2, .08))
-			time.sleep(2)
+			rospy.sleep(3)
+			self.point_publisher.publish(Point(0, -1.2, .1))
+			rospy.sleep(3)
 			self.home_publisher.publish(True)
-			time.sleep(2)
+			rospy.sleep(2)
 			self.sleep_publisher.publish(True)
-			time.sleep(2)
-			self.gripper_publisher.publish(self.close)
-			self.state = "resting"
-			self.has_run = True
-			self.arm_status_publisher.publish(self.state)
-	
-	# def is_dig(self,n):
-	#     try:
-	#         float(n)
-	#         return True
-	#     except ValueError:
-	#         return  False
+			rospy.sleep(2)
+			self.gripper_publisher.publish("close")
+			self.arm_status_publisher.publish("resting")
 
-	def is_valid_coordinate(self, y_value):
-		if (self.y > 3.1 or self.y < -3.1):
-			self.state = "invalid"
-			self.arm_status_publisher.publish(self.state)
-			rospy.loginfo("The box's coordinates are invalid, need to reposition robot")
+	# Return True if arm is capable of picking up the cargo and False otherwise
+	def is_valid_coordinate(self, radius, theta):
+		if ((radius < .09975 or radius > .13609) or (abs(theta)>0.7) or (self.z == 10)):
+			print("invalid coordinates")
+			self.arm_status_publisher.publish("invalid")
 			return False
-		self.state = "valid"
-		self.arm_status_publisher.publish(self.state)
+		self.arm_status_publisher.publish("valid")
 		return True
 
+	# Calculate the 
 	def cargo_point_cb(self, msg):
-		if (self.alien_state):
-			self.alien_state = False
+
+		if (self.alien_state):	# Calculate only if robot is in position
+			self.alien_state = False	# Only perform one calculation per cycle
 			x = msg.x
-			# transform so that the origin is center of arm instead of corner of image
-			y = msg.y-0.0886146
+			y = msg.y-.0708917	# Shift so that arm is at (0,0)
 			self.z = msg.z      # No conversion necessary
 
 			# Convert to polar
 			r = numpy.sqrt(x**2 + y**2)
 			t = numpy.arctan2(y, x)
 
+			print(f"radius: {r} theta: {t}")
+
 			# Transform polar coordinates to arm command coordinates
-			self.x = self.trans_x(r)
-			self.y = self.trans_y(t)
+			if (self.is_valid_coordinate(r, t)):
+				self.x = self.trans_x(r)
+				self.y = self.trans_y(t)
+				print(f"original: {self.x}, {self.y}")
 
-			# Adjust for orientation of cube
-			if self.y > 0.2:
-				if self.y > 0:
-					self.y += .05
-				# else:
-				# 	self.y -= 0.05
+				# Adjust for orientation of cube
+				if abs(self.y) > 0.01:
+					if self.y < 0:
+						if self.y > -0.2:
+							self.y -= .03
+						elif self.y > -0.4:
+							self.y -= .09
+						else:
+							self.y -= .1
+					else:
+						if self.y < 0.2:
+							self.y += .03
+						elif self.y < 0.4:
+							self.y += .08
+						elif self.y < 0.5:
+							self.y += .14
+						else:
+							self.y += .23	
+				print(f"adjusted: {self.x}, {self.y}")
+				
+				self.pickup()
+				self.drop_cargo()
 
-			self.publisher()
 
-'''
-if __name__=='__main__':
-	rospy.init_node("box_pickup")
-	try:
-		SendCommand()
-	except rospy.ROSInterruptException:
-		pass
-'''
 
 rospy.init_node("box_pickup")
 commander = SendCommand()

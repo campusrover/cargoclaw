@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import rospy, cv2, cv_bridge, numpy, random
+import rospy, cv2, cv_bridge, numpy
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Twist, Point
-import numpy as np
+from geometry_msgs.msg import Point
 
 class ImageProcessor:
 	
@@ -15,14 +14,14 @@ class ImageProcessor:
 		
 		# State the transportation robot (moving - False, halted - True)
 		self.alien_state_sub = rospy.Subscriber("alien_state", Bool, self.set_state)
-		self.alien_state = False
+		self.alien_state = True
 		
 		# Send position of the cargo
 		self.cargo_point_pub = rospy.Publisher("cargo_point", Point, queue_size=10)
 
 		# Image processing
 		self.bridge = cv_bridge.CvBridge()
-		self.kernel = np.ones((7,7),np.uint8)
+		self.kernel = numpy.ones((7,7), numpy.uint8)
 		
 		# Pixel dimensions of image
 		width_pixels = rospy.get_param("~width_pixels", 640)
@@ -36,7 +35,7 @@ class ImageProcessor:
 		self.width_ratio = width_phys / width_pixels 
 		self.height_ratio = height_phys / height_pixels 
 
-		# z distance from arm at rest position to the box
+		# z distance from arm at "home" position to the box
 		self.arm_z = rospy.get_param("~arm_z", -0.06)
 
 	def set_state(self, msg):
@@ -49,12 +48,12 @@ class ImageProcessor:
 			# Get image
 			image = self.bridge.imgmsg_to_cv2(msg)
 
-			# Yellow mask
+			# Color mask
 			hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-			lower_yellow = np.array([ 80, 0, 230 ])
-			upper_yellow = np.array([ 90, 255, 255 ])
-			mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+			lower_mask = numpy.array([ 80, 0, 230 ])
+			upper_mask = numpy.array([ 90, 255, 255 ])
+			mask = cv2.inRange(hsv, lower_mask, upper_mask)
 			
 			# Remove noise from mask
 			mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self.kernel)
@@ -65,37 +64,28 @@ class ImageProcessor:
 			masked = cv2.cvtColor(masked, cv2.COLOR_HSV2BGR)
 			masked = cv2.cvtColor(masked, cv2.COLOR_RGB2GRAY)
 
-			# Get coordinates of the box
-			x = 4
-			y = 4	# Invalid by default. If not changed by computed centroid, forces robot to reposition
-
 			# Compute the centroid
 			M = cv2.moments(masked)
 
-			# If a centroid can be found, the box is in view
+			# If a centroid can be found, the cargo is in view
 			if M['m00'] != 0:
 
 				# Compute centroid
 				x_pixels = int(M['m10']/M['m00'])
 				y_pixels = int(M['m01']/M['m00'])
 
-				print(f"x pix: {x_pixels} y pix: {y_pixels}")
-
 				# Compute physical x/y coordinates
 				x = x_pixels*self.width_ratio
 				y = y_pixels*self.height_ratio
 
-				print(f"x: {x} y: {y}")
+				print(x, y)
+
+				# Publish the position of the cargo box
+				self.cargo_point_pub.publish(Point(x, y, self.arm_z))
 
 			else:
-				print("no cargo detected")
-
-			# Publish the position of the cargo box
-			self.cargo_point_pub.publish(Point(x, y, self.arm_z))
-
-			cv2.imshow("image", image)
-			# cv2.imshow("hsv", hsv)
-			cv2.imshow("masked", masked)
+				# Cargo is not in view, publish an invalid z
+				self.cargo_point_pub.publish(Point(0, 0, 10))
 
 			cv2.waitKey(3)
 

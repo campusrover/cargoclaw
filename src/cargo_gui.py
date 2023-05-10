@@ -29,12 +29,13 @@ def ui_cb(msg): #recives string from robot node and displays data
 
 def arm_cb(msg): #sent from arm node, controls when robot leaves arm location
     if (msg.data=="invalid"):
-        rob.GoHome()
+        pubGH()
         time.sleep(10)
-        rob.GoGoal()
+        pubGG()
     elif(msg.data=="resting"):
         time.sleep(2)
-        rob.GoHome()
+        pubGH()
+
 
 #creates all the text variables for displaying the robot data
 mode_text=tkinter.StringVar()
@@ -105,6 +106,8 @@ def pack_test():#loads testing screen to GUI
         i.pack_forget()
     mode_text.set("Test Mode")
     
+    terminal3()
+
     terminal3()
 
     mode_label.pack(side=tkinter.TOP)

@@ -1,4 +1,0 @@
-<launch>
-	<include file="$(find cargoclaw)/launch/arm_command.launch" />
-	<include file="$(find cargoclaw)/launch/transport_command.launch" />
-</launch>

@@ -1,15 +1,19 @@
 <launch>
 	<!-- Arm nodes-->
-    <node pkg="cargoclaw" type="box_pickup.py" name="box_pickup" output="screen"/>
     <include file="$(find interbotix_xsarm_control)/launch/xsarm_control.launch" >
         <arg name="robot_model" value="px100" />
-        <!-- <arg name="use_actual" value="true" /> -->
         <arg name="use_sim" value="false" />
-        <!-- <arg name="dof" value="4" />  -->
     </include>
+    <node pkg="cargoclaw" type="control_arm.py" name="control_arm" output="screen" />
+    <node pkg="cargoclaw" type="box_pickup.py" name="box_pickup" output="screen" />
 
     <!-- Camera nodes-->
-    <!-- <include file="($find usb_cam)/launch/usb_cam-test.launch" />
-    <node pkg="cargoclaw" type="arm_cam.py" name="arm_cam" output="screen" /> -->
-	<!-- <node pkg="cargoclaw" type="VIBHU'S NODE.py" name="VIBHU'S NODE" output="screen" /> -->
+    <include file="$(find usb_cam)/launch/usb_cam-test.launch" />
+    <node pkg="cargoclaw" type="arm_cam.py" name="arm_cam" output="screen" >
+        <param name="width_pixels" value="640" />
+        <param name="height_pixels" value="480" />
+        <param name="width_phys" value="0.228" />
+        <param name="height_phys" value="0.181" />
+        <param name="arm_z" value="-0.06" />
+    </node>
 </launch>
