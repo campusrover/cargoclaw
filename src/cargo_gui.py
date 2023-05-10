@@ -428,7 +428,7 @@ Mode1.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode2.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 Mode3.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 
-pack_test()
+pack1()
 
 
 root.bind("w",pubF_key)
